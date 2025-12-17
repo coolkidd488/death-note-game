@@ -1,11 +1,182 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Death Note Game</title>
+<meta charset="UTF-8">
+<title>Death Note — Cidade Oculta</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:#000;color:#fff;overflow:hidden}
+.hidden{display:none}
+
+.fade{animation:fade 1s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+#screen{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+
+button{
+  padding:14px 30px;
+  font-size:18px;
+  border-radius:12px;
+  background:transparent;
+  color:white;
+  border:2px solid white;
+  margin:10px;
+  transition:.2s;
+}
+button:active{transform:scale(1.15)}
+
+.red{border-color:red;box-shadow:0 0 15px red}
+.blue{border-color:#1e90ff;box-shadow:0 0 15px #1e90ff}
+
+#story{
+  max-width:650px;
+  line-height:1.7;
+  padding:20px;
+}
+
+#top{
+  position:fixed;
+  top:10px;
+  right:10px;
+  z-index:5;
+}
+
+canvas{
+  background:#111;
+  display:block;
+}
+</style>
 </head>
+
 <body>
-  <h1>Site carregou com sucesso ✅</h1>
-  <p>GitHub Pages está funcionando.</p>
+
+<div id="top">
+<button onclick="toggleFull()">⛶</button>
+</div>
+
+<div id="screen"></div>
+<canvas id="game" class="hidden"></canvas>
+
+<script>
+const screen=document.getElementById("screen")
+const canvas=document.getElementById("game")
+const ctx=canvas.getContext("2d")
+
+let humans=[]
+let kira=Math.floor(Math.random()*30)
+let player={x:200,y:220}
+
+function device(){
+  return /Mobi|Android/i.test(navigator.userAgent)?"celular":"computador"
+}
+
+function transition(next){
+  screen.className="fade"
+  setTimeout(()=>{screen.innerHTML="";next()},900)
+}
+
+function start(){
+  screen.innerHTML=`
+    <h1>DEATH NOTE</h1>
+    <p>Dispositivo: ${device()}</p>
+    <button class="red" onclick="transition(players)">Iniciar</button>
+  `
+}
+
+function players(){
+  screen.innerHTML=`
+    <h2>Quantas mentes?</h2>
+    <button class="red" onclick="transition(story)">1 Pessoa</button>
+    <button class="blue" onclick="transition(story)">2 Pessoas</button>
+  `
+}
+
+function story(){
+  screen.innerHTML=`
+    <div id="story">${generateStory()}</div>
+    <button onclick="nextStory()">Next</button>
+    <button onclick="transition(startGame)">Ir para cidade</button>
+  `
+}
+
+function generateStory(){
+  const text=[
+    "A cidade parece normal, mas algo está errado.",
+    "Trinta pessoas vivem suas rotinas sem saber a verdade.",
+    "Um deles escreve nomes em segredo.",
+    "O detetive sente que está sendo observado.",
+    "Justiça e loucura caminham juntas."
+  ]
+  let s=""
+  for(let i=0;i<8;i++){
+    s+=text[Math.floor(Math.random()*text.length)]+" "
+  }
+  return s
+}
+
+function nextStory(){
+  document.getElementById("story").innerText+="\n\n"+generateStory()
+}
+
+function startGame(){
+  screen.classList.add("hidden")
+  canvas.classList.remove("hidden")
+  canvas.width=innerWidth
+  canvas.height=innerHeight
+  createHumans()
+  loop()
+}
+
+function createHumans(){
+  humans=[]
+  for(let i=0;i<30;i++){
+    humans.push({
+      x:Math.random()*2000,
+      y:220,
+      id:i
+    })
+  }
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height)
+
+  ctx.fillStyle="white"
+  ctx.fillRect(player.x,player.y,20,40)
+
+  humans.forEach(h=>{
+    ctx.fillStyle=h.id===kira?"#550000":"#888"
+    ctx.fillRect(h.x-player.x+200,h.y,16,36)
+  })
+}
+
+function loop(){
+  draw()
+  requestAnimationFrame(loop)
+}
+
+addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight")player.x+=10
+  if(e.key==="ArrowLeft")player.x-=10
+})
+
+function toggleFull(){
+  if(!document.fullscreenElement)
+    document.documentElement.requestFullscreen()
+  else document.exitFullscreen()
+}
+
+start()
+</script>
+
 </body>
 </html>
